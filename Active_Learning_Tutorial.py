@@ -168,13 +168,11 @@ class SvmModel(BaseModel):
     model_type = 'Support Vector Machine with linear Kernel'
     def fit_predict(self, X_train, y_train, X_val, X_test, c_weight):
         print ('training svm...')
-        self.classifier = SVC(C=1, kernel='linear', probability=True,
-                              class_weight=c_weight)
+        self.classifier = SVC(C=1, kernel='linear', probability=True,class_weight=c_weight)
         self.classifier.fit(X_train, y_train)
         self.test_y_predicted = self.classifier.predict(X_test)
         self.val_y_predicted = self.classifier.predict(X_val)
-        return (X_train, X_val, X_test, self.val_y_predicted,
-                self.test_y_predicted)
+        return (X_train, X_val, X_test, self.val_y_predicted,self.test_y_predicted)
 
 
 class LogModel(BaseModel):
@@ -192,11 +190,11 @@ class LogModel(BaseModel):
             tol=0.1,
             class_weight=c_weight,
             )
+
         self.classifier.fit(X_train, y_train)
         self.test_y_predicted = self.classifier.predict(X_test)
         self.val_y_predicted = self.classifier.predict(X_val)
-        return (X_train, X_val, X_test, self.val_y_predicted,
-                self.test_y_predicted)
+        return (X_train, X_val, X_test, self.val_y_predicted,self.test_y_predicted)
 
 class RfModel(BaseModel):
 
@@ -205,6 +203,7 @@ class RfModel(BaseModel):
     def fit_predict(self, X_train, y_train, X_val, X_test, c_weight):
         print ('training random forest...')
         self.classifier = RandomForestClassifier(n_estimators=500, class_weight=c_weight)
+
         self.classifier.fit(X_train, y_train)
         self.test_y_predicted = self.classifier.predict(X_test)
         self.val_y_predicted = self.classifier.predict(X_val)
@@ -233,9 +232,7 @@ class TrainModel:
         print ('Val   set:', X_val.shape)
         print ('Test  set:', X_test.shape)
         t0 = time.time()
-        (X_train, X_val, X_test, self.val_y_predicted,
-         self.test_y_predicted) = \
-            self.model_object.fit_predict(X_train, y_train, X_val, X_test, c_weight)
+        (X_train, X_val, X_test, self.val_y_predicted,self.test_y_predicted) = self.model_object.fit_predict(X_train, y_train, X_val, X_test, c_weight)
         self.run_time = time.time() - t0
         return (X_train, X_val, X_test)  # we return them in case we use PCA, with all the other algorithms, this is not needed.
 
@@ -326,12 +323,9 @@ class Normalize(object):
 # In[ ]:
 
 
-def get_k_random_samples(initial_labeled_samples, X_train_full,
-                         y_train_full):
+def get_k_random_samples(initial_labeled_samples, X_train_full,y_train_full):
     random_state = check_random_state(0)
-    permutation = np.random.choice(trainset_size,
-                                   initial_labeled_samples,
-                                   replace=False)
+    permutation = np.random.choice(trainset_size,initial_labeled_samples,replace=False)
     print ()
     print ('initial random chosen samples', permutation.shape),
 #            permutation)
@@ -369,8 +363,7 @@ class TheAlgorithm(object):
 
         # initialize process by applying base learner to labeled training data set to obtain Classifier
 
-        (permutation, X_train, y_train) =             get_k_random_samples(self.initial_labeled_samples,
-                                 X_train_full, y_train_full)
+        (permutation, X_train, y_train) = get_k_random_samples(self.initial_labeled_samples,X_train_full, y_train_full)
         self.queried = self.initial_labeled_samples
         self.samplecount = [self.initial_labeled_samples]
 
@@ -408,7 +401,7 @@ class TheAlgorithm(object):
 
             # get validation probabilities
 
-            probas_val =                 self.clf_model.model_object.classifier.predict_proba(X_val)
+            probas_val = self.clf_model.model_object.classifier.predict_proba(X_val)
             print ('val predicted:',
                    self.clf_model.val_y_predicted.shape,
                    self.clf_model.val_y_predicted)
@@ -417,7 +410,7 @@ class TheAlgorithm(object):
 
             # select samples using a selection function
 
-            uncertain_samples =                 self.sample_selection_function.select(probas_val, self.initial_labeled_samples)
+            uncertain_samples = self.sample_selection_function.select(probas_val, self.initial_labeled_samples)
 
             # normalization needs to be inversed and recalculated based on the new train and test set.
  
@@ -455,8 +448,7 @@ class TheAlgorithm(object):
             (X_train, X_val, X_test) = self.clf_model.train(X_train, y_train, X_val, X_test, 'balanced')
             self.clf_model.get_test_accuracy(active_iteration, y_test)
 
-        print ('final active learning accuracies',
-               self.clf_model.accuracies)
+        print ('final active learning accuracies',self.clf_model.accuracies)
 
 
 
