@@ -40,46 +40,24 @@ def download():
 	Returns:
 		TYPE: Datasets X and y
 	"""
-	mnist = fetch_mldata('MNIST original')
-	X = mnist.data.astype('float64')
-	y = mnist.target.astype('int64')
-
-	print('Dataset X: ',X.shape)
-	print('Dataset Y: ',y.shape)
-
+	filename='percent_inside_new.csv'
+	df = pd.read_csv('Data/'+filename)
 	
-	count=0
-	counteach=0
-	classes=0
-
-	x_new=np.zeros((total_size,784))
-	y_new=np.zeros((total_size,))
-	#=============== Changing dataset size ==========================
-	while(classes<10):
-		for i in range(70000):
-
-			if(counteach==num_each_classes):
-				classes=classes+1
-				counteach=0
-
-			if(y[i]==classes):
-				x_new[count]=X[i]
-				y_new[count]=y[i]
-				count=count+1
-				counteach=counteach+1
+	mapping = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9}
+	df['labels'].replace(mapping,inplace=True)
 
 
-	#================================================================
+	y = df['labels']
+	print(df.head())
 
-	X=x_new
-	y=y_new
+	df.drop('labels',axis=1,inplace=True)
+	X = df
+	print ('Dataset:', X.shape, y.shape)
 
-	unique, counts = np.unique(y, return_counts=True)
+	# Convert to numpy array
+	X = X.values
+	y = y.values
 
-	print (np.asarray((unique, counts)).T)
-
-
-	print ('MNIST:', X.shape, y.shape)
 	return (X, y)
 
 # =======================================================================
@@ -546,9 +524,13 @@ def experiment(d, models, selection_functions, Ks, repeats, contfrom):
 						print ()
 	return d
 
+
+
+(X, y) = download()
+
 # ============= PARAMETERS WHICH CAN BE TUNED =========================================
 max_queried = 500 # Determine the maximum number of queries that you want to carry out
-total_size = 1000  # Total size of data
+total_size = X.shape[0]  # Total size of data
 trainset_size = int(0.9*total_size) # Part of data to be taken for training
 num_each_classes = total_size/10 # Number of classes in the data
 Ks = [250] # Number of samples to select each time
@@ -559,12 +541,13 @@ models = [SvmModel, RfModel, LogModel]
 selection_functions = [RandomSelection, MarginSamplingSelection, EntropySelection]
 # ======================================================================================
 
-(X, y) = download()
+
 (X_train_full, y_train_full, X_test, y_test) = split(trainset_size)
 print ('train:', X_train_full.shape, y_train_full.shape)
 print ('test :', X_test.shape, y_test.shape)
 classes = len(np.unique(y))
 print ('unique classes', classes)
+
 
 d = {}
 stopped_at = -1
