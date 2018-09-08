@@ -215,12 +215,17 @@ class RfModel(BaseModel):
 
 class TrainModel:
 
-	def __init__(self, model_object):        
+	def __init__(self, model_object1, model_object2, model_object3):
+
 		self.accuracies = []
-		self.model_object = model_object()        
+		self.model_object1 = model_object1()
+		self.model_object2 = model_object2()
+		self.model_object3 = model_object3()       
 
 	def print_model_type(self):
-		print (self.model_object.model_type)
+		print (self.model_object1.model_type)
+		print (self.model_object1.model_type)
+		print (self.model_object1.model_type)
 
 	# we train normally and get probabilities for the validation set. i.e., we use the probabilities to select the most uncertain samples
 
@@ -229,25 +234,39 @@ class TrainModel:
 		print ('Val   set:', X_val.shape)
 		print ('Test  set:', X_test.shape)
 		t0 = time.time()
-		(X_train, X_val, X_test, self.val_y_predicted,self.test_y_predicted) = self.model_object.fit_predict(X_train, y_train, X_val, X_test, c_weight)
+		(X_train, X_val, X_test, self.val_y_predicted1,self.test_y_predicted1) = self.model_object1.fit_predict(X_train, y_train, X_val, X_test, c_weight)
+		(X_train, X_val, X_test, self.val_y_predicted2,self.test_y_predicted2) = self.model_object2.fit_predict(X_train, y_train, X_val, X_test, c_weight)
+		(X_train, X_val, X_test, self.val_y_predicted3,self.test_y_predicted3) = self.model_object3.fit_predict(X_train, y_train, X_val, X_test, c_weight)
+
+
+		self.test_y_predicted1 = self.model_object1.classifier.predict_proba(X_test)
+		self.test_y_predicted2 = self.model_object2.classifier.predict_proba(X_test)
+		self.test_y_predicted3 = self.model_object3.classifier.predict_proba(X_test)
+
+
+		self.test_y_predicted = ensemble_probas(self.test_y_predicted1,self.test_y_predicted2,self.test_y_predicted3)
+		self.test_y_predicted = np.argmax(self.test_y_predicted,axis=1)
+
+		print('Y_predicted: ',self.test_y_predicted)
 		
-		print('Y_predicted: ',self.model_object.classifier.predict_proba(X_test))
 		self.run_time = time.time() - t0
 		return (X_train, X_val, X_test)  # we return them in case we use PCA, with all the other algorithms, this is not needed.
 
 	# we want accuracy only for the test set
 
 	def get_test_accuracy(self, i, y_test):
+
 		classif_rate = np.mean(self.test_y_predicted.ravel() == y_test.ravel()) * 100
 		self.accuracies.append(classif_rate)               
 		print('--------------------------------')
 		print('Iteration:',i)
+		print('Y_predicted test acc: ',self.test_y_predicted)
 		print('--------------------------------')
 		print('y-test set:',y_test.shape)
 		print('Example run in %.3f s' % self.run_time,'\n')
 		print("Accuracy rate for %f " % (classif_rate))    
-		print("Classification report for classifier %s:\n%s\n" % (self.model_object.classifier, metrics.classification_report(y_test, self.test_y_predicted)))
-		print("Confusion matrix:\n%s" % metrics.confusion_matrix(y_test, self.test_y_predicted))
+		
+		
 		print('--------------------------------')
 
 # =============================================================================================
@@ -375,25 +394,10 @@ class TheAlgorithm(object):
 		X_train, X_val, X_test = normalizer.normalize(X_train, X_val, X_test)   
 		
 		# ============ train the model here =========================================
-		self.clf_model1 = TrainModel(self.model_object1)
-		(X_train, X_val, X_test) = self.clf_model1.train(X_train, y_train, X_val, X_test, 'balanced')
+		self.clf_model = TrainModel(self.model_object1,self.model_object2,self.model_object3)
+		(X_train, X_val, X_test) = self.clf_model.train(X_train, y_train, X_val, X_test, 'balanced')
 		active_iteration = 1
-		self.clf_model1.get_test_accuracy(1, y_test)
-
-
-		self.clf_model2 = TrainModel(self.model_object2)
-		(X_train, X_val, X_test) = self.clf_model2.train(X_train, y_train, X_val, X_test, 'balanced')
-		self.clf_model2.get_test_accuracy(1, y_test)
-
-
-		self.clf_model3 = TrainModel(self.model_object3)
-		(X_train, X_val, X_test) = self.clf_model3.train(X_train, y_train, X_val, X_test, 'balanced')
-		self.clf_model3.get_test_accuracy(1, y_test)
-
-
-
-
-
+		self.clf_model.get_test_accuracy(1, y_test)
 		# ============================================================================
 
 		while self.queried < max_queried:
@@ -402,17 +406,17 @@ class TheAlgorithm(object):
 
 			# get validation probabilities for all 3 classifiers
 			# =====================================================================================
-			probas_val1 = self.clf_model1.model_object.classifier.predict_proba(X_val)
-			print ('val predicted:',self.clf_model1.val_y_predicted.shape,self.clf_model1.val_y_predicted)
+			probas_val1 = self.clf_model.model_object1.classifier.predict_proba(X_val)
+			print ('val predicted:',self.clf_model.val_y_predicted1.shape,self.clf_model.val_y_predicted1)
 			print ('probabilities:', probas_val1.shape, '\n',np.argmax(probas_val1, axis=1))
 
 
-			probas_val2 = self.clf_model2.model_object.classifier.predict_proba(X_val)
-			print ('val predicted:',self.clf_model2.val_y_predicted.shape,self.clf_model2.val_y_predicted)
+			probas_val2 = self.clf_model.model_object2.classifier.predict_proba(X_val)
+			print ('val predicted:',self.clf_model.val_y_predicted2.shape,self.clf_model.val_y_predicted2)
 			print ('probabilities:', probas_val2.shape, '\n',np.argmax(probas_val2, axis=1))
 
-			probas_val3 = self.clf_model3.model_object.classifier.predict_proba(X_val)
-			print ('val predicted:',self.clf_model3.val_y_predicted.shape,self.clf_model3.val_y_predicted)
+			probas_val3 = self.clf_model.model_object3.classifier.predict_proba(X_val)
+			print ('val predicted:',self.clf_model.val_y_predicted3.shape,self.clf_model.val_y_predicted3)
 			print ('probabilities:', probas_val3.shape, '\n',np.argmax(probas_val3, axis=1))
 			# =====================================================================================
 
@@ -460,19 +464,12 @@ class TheAlgorithm(object):
 			self.queried += self.initial_labeled_samples
 
 			# ============ Retrain model ==================================================
-			(X_train, X_val, X_test) = self.clf_model1.train(X_train, y_train, X_val, X_test, 'balanced')
-			self.clf_model1.get_test_accuracy(1, y_test)
-
-			(X_train, X_val, X_test) = self.clf_model2.train(X_train, y_train, X_val, X_test, 'balanced')
-			self.clf_model2.get_test_accuracy(1, y_test)
-
-			(X_train, X_val, X_test) = self.clf_model3.train(X_train, y_train, X_val, X_test, 'balanced')
-			self.clf_model3.get_test_accuracy(1, y_test)
+			(X_train, X_val, X_test) = self.clf_model.train(X_train, y_train, X_val, X_test, 'balanced')
+			self.clf_model.get_test_accuracy(1, y_test)
 			# =============================================================================
 
-		print ('final active learning accuracies',self.clf_model1.accuracies)
-		print ('final active learning accuracies',self.clf_model2.accuracies)
-		print ('final active learning accuracies',self.clf_model3.accuracies)
+		print ('final active learning accuracies',self.clf_model.accuracies)
+		
 
 # =========================================================================================================
 
@@ -516,7 +513,7 @@ def experiment(d, models, selection_functions, Ks, repeats, contfrom):
 						print ('Count = %s, selection_function = %s, k = %s, iteration = %s.' % (count, selection_function.__name__, k, i))
 						alg = TheAlgorithm(k, models[0],models[1],models[2], selection_function)
 						alg.run(X_train_full, y_train_full, X_test, y_test)
-						d[selection_function.__name__][str(k)].append([alg.clf_model1.accuracies,alg.clf_model2.accuracies,alg.clf_model3.accuracies])
+						d[selection_function.__name__][str(k)].append(alg.clf_model.accuracies)
 						fname = 'Active-learning-experiment-' + str(count) + '.pkl'
 						pickle_save(fname, d)
 						
@@ -556,4 +553,8 @@ stopped_at = -1
 d = experiment(d, models, selection_functions, Ks, repeats, stopped_at+1)
 
 results = json.loads(json.dumps(d, indent=2, sort_keys=True))
+
+with open('accuracies/acc.json', 'wb') as fp:
+    json.dumps(d,fp,indent=2, sort_keys=True)
+
 print(results)
