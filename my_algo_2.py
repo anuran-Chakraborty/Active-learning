@@ -40,10 +40,10 @@ def download():
 	Returns:
 		TYPE: Datasets X and y
 	"""
-	filename='percent_inside_new.csv'
+	filename='featurefile_ben_320.csv'
 	df = pd.read_csv('Data/'+filename)
 	
-	mapping = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9}
+	mapping = {'A0': 0, 'A1': 1, 'A2': 2, 'A3': 3, 'A4': 4, 'A5': 5, 'A6': 6, 'A7': 7, 'A8': 8, 'A9': 9}
 	df['labels'].replace(mapping,inplace=True)
 
 
@@ -72,7 +72,7 @@ def split(train_size):
 	Returns:
 		TYPE: Splitted train and test set
 	"""
-	X_train_full,X_test,y_train_full,y_test = train_test_split(X, y, train_size=0.9, shuffle=True)
+	X_train_full,X_test,y_train_full,y_test = train_test_split(X, y, train_size=percent, shuffle=True)
 	return (X_train_full, y_train_full, X_test, y_test)
 
 # ================================================================================================
@@ -530,9 +530,10 @@ def experiment(d, models, selection_functions, Ks, repeats, contfrom):
 # ============= PARAMETERS WHICH CAN BE TUNED =========================================
 max_queried = 500 # Determine the maximum number of queries that you want to carry out
 total_size = X.shape[0]  # Total size of data
-trainset_size = int(0.9*total_size) # Part of data to be taken for training
-num_each_classes = total_size/10 # Number of classes in the data
-Ks = [250] # Number of samples to select each time
+percent = 0.5 # Percentage split parameter
+trainset_size = int(percent*total_size) # Part of data to be taken for training
+
+Ks = [10] # Number of samples to select each time
 repeats = 1
 
 models = [SvmModel, RfModel, LogModel] 
@@ -555,6 +556,6 @@ d = experiment(d, models, selection_functions, Ks, repeats, stopped_at+1)
 results = json.loads(json.dumps(d, indent=2, sort_keys=True))
 
 with open('accuracies/acc.json', 'wb') as fp:
-    json.dumps(d,fp,indent=2, sort_keys=True)
+    json.dumps(d,fp,indent=2)
 
 print(results)
