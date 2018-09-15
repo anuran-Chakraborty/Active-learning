@@ -243,6 +243,10 @@ class TrainModel:
 		self.test_y_predicted2 = self.model_object2.classifier.predict_proba(X_test)
 		self.test_y_predicted3 = self.model_object3.classifier.predict_proba(X_test)
 
+		self.train_y_predicted1 = self.model_object1.classifier.predict_proba(X_train)
+		self.train_y_predicted2 = self.model_object2.classifier.predict_proba(X_train)
+		self.train_y_predicted3 = self.model_object3.classifier.predict_proba(X_train)
+
 
 		self.test_y_predicted = ensemble_probas(self.test_y_predicted1,self.test_y_predicted2,self.test_y_predicted3)
 		self.test_y_predicted = np.argmax(self.test_y_predicted,axis=1)
@@ -254,18 +258,18 @@ class TrainModel:
 
 
 	# accuracy for invidiual classfiers
-	def get_test_accuracy_indiv(self, y_test):
+	def get_train_accuracy_indiv(self, y_test):
 
 		global w1
 		global w2
 		global w3
-		self.test_y_predicted1 = np.argmax(self.test_y_predicted1,axis=1)
-		self.test_y_predicted2 = np.argmax(self.test_y_predicted2,axis=1)
-		self.test_y_predicted3 = np.argmax(self.test_y_predicted3,axis=1)
+		self.train_y_predicted1 = np.argmax(self.train_y_predicted1,axis=1)
+		self.train_y_predicted2 = np.argmax(self.train_y_predicted2,axis=1)
+		self.train_y_predicted3 = np.argmax(self.train_y_predicted3,axis=1)
 
-		w1 = np.mean(self.test_y_predicted1.ravel() == y_test.ravel())
-		w2 = np.mean(self.test_y_predicted2.ravel() == y_test.ravel())
-		w3 = np.mean(self.test_y_predicted3.ravel() == y_test.ravel())
+		w1 = np.mean(self.train_y_predicted1.ravel() == y_test.ravel())
+		w2 = np.mean(self.train_y_predicted2.ravel() == y_test.ravel())
+		w3 = np.mean(self.train_y_predicted3.ravel() == y_test.ravel())
 
 	# we want accuracy only for the test set
 
@@ -411,7 +415,7 @@ class TheAlgorithm(object):
 		# ============ train the model here =========================================
 		self.clf_model = TrainModel(self.model_object1,self.model_object2,self.model_object3)
 		(X_train, X_val, X_test) = self.clf_model.train(X_train, y_train, X_val, X_test, 'balanced')
-		self.clf_model.get_test_accuracy_indiv(y_test)
+		self.clf_model.get_train_accuracy_indiv(y_train)
 		active_iteration = 1
 		self.clf_model.get_test_accuracy(1, y_test)
 		# ============================================================================
@@ -487,7 +491,7 @@ class TheAlgorithm(object):
 
 			# ============ Retrain model ==================================================
 			(X_train, X_val, X_test) = self.clf_model.train(X_train, y_train, X_val, X_test, 'balanced')
-			self.clf_model.get_test_accuracy_indiv(y_test)
+			self.clf_model.get_train_accuracy_indiv(y_train)
 			self.clf_model.get_test_accuracy(1, y_test)
 			# =============================================================================
 
