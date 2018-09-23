@@ -41,10 +41,10 @@ def download():
 	Returns:
 		TYPE: Datasets X and y
 	"""
-	filename='featurefile_ben_320.csv'
+	filename='segmentation.csv'
 	df = pd.read_csv('Data/'+filename)
 	
-	mapping = {'A0': 0, 'A1': 1, 'A2': 2, 'A3': 3, 'A4': 4, 'A5': 5, 'A6': 6, 'A7': 7, 'A8': 8, 'A9': 9}
+	mapping = {'BRICKFACE': 0, 'SKY': 1, 'FOLIAGE': 2, 'CEMENT': 3, 'WINDOW': 4, 'PATH': 5, 'GRASS': 6}
 	df['labels'].replace(mapping,inplace=True)
 
 
