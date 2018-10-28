@@ -40,17 +40,17 @@ def download():
 	Returns:
 		TYPE: Datasets X and y
 	"""
-	filename='segmentation.csv'
-	df = pd.read_csv('Data/'+filename)
+	filename='MLLmattest.csv'
+	df = pd.read_csv('featureSelected/100/'+filename)
 	
-	mapping = {'BRICKFACE': 0, 'SKY': 1, 'FOLIAGE': 2, 'CEMENT': 3, 'WINDOW': 4, 'PATH': 5, 'GRASS': 6}
-	df['labels'].replace(mapping,inplace=True)
+	mapping = {'a': 0, 'b': 1, 'c': 2}
+	df['class'].replace(mapping,inplace=True)
 
 
-	y = df['labels']
+	y = df['class']
 	print(df.head())
 
-	df.drop('labels',axis=1,inplace=True)
+	df.drop('class',axis=1,inplace=True)
 	X = df
 	print ('Dataset:', X.shape, y.shape)
 
@@ -528,17 +528,17 @@ def experiment(d, models, selection_functions, Ks, repeats, contfrom):
 (X, y) = download()
 
 # ============= PARAMETERS WHICH CAN BE TUNED =========================================
-max_queried = 100 # Determine the maximum number of queries that you want to carry out
+max_queried = 30 # Determine the maximum number of queries that you want to carry out
 total_size = X.shape[0]  # Total size of data
-percent = 0.5 # Percentage split parameter
+percent = 0.6 # Percentage split parameter
 trainset_size = int(percent*total_size) # Part of data to be taken for training
 
-Ks = [10] # Number of samples to select each time
-repeats = 1
+Ks = [5] # Number of samples to select each time
+repeats = 10
 
 models = [SvmModel, RfModel, LogModel] 
 
-selection_functions = [RandomSelection, MarginSamplingSelection, EntropySelection]
+selection_functions = [MarginSamplingSelection]
 # ======================================================================================
 
 
